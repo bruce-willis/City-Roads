@@ -7,48 +7,47 @@ using OSM.Types;
 
 namespace OSM
 {
-    class Program
+    internal static class Program
     {
         private static string ConvertCoordinates(double coordinate)
         {
             return (coordinate * 1000).ToString(System.Globalization.CultureInfo.InvariantCulture);
         }
 
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             City volgograd;
 
             using (var reader = new StreamReader("volgograd.osm"))
             {
-                var serializer = new XmlSerializer(typeof(City));
-                volgograd = (City)serializer.Deserialize(reader);
+                volgograd = (City)new XmlSerializer(typeof(City)).Deserialize(reader);
             }
 
-            var nodesGeo = new Dictionary<ulong, (double longitude, double latitude)>();
+            var nodesGeo = new Dictionary<ulong, (double longitude, double latitude, bool used)>(volgograd.Nodes.Length);
 
 
-            using (StreamWriter output = new StreamWriter("map.svg"))
+            using (var output = new StreamWriter("map_way.svg"))
             {
                 output.WriteLine("<?xml version=\"1.0\" standalone=\"no\"?>\r\n<svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\">");
 
                 foreach (var node in volgograd.Nodes)
                 {
-                    nodesGeo.Add(node.Id, (node.Longitude, node.Latitude));
+                    nodesGeo.Add(node.Id, (node.Longitude, node.Latitude, false));
                     //output.WriteLine($"<circle cx=\"{ConvertCoordinates(node.Longitude - volgograd.Bounds.MinimumLongitude)}\" cy=\"{ConvertCoordinates(node.Latitude - volgograd.Bounds.MinimumLatitude)}\" r=\"0.03\" fill=\"red\" />");
                 }
 
                 foreach (var way in volgograd.Ways)
                 {
-                    if (way.Tags?.FirstOrDefault(t => t.Key == "highway") != null)
+                    if (way.Tags?.FirstOrDefault(t => t.Key == "highway") != null || true)
                     {
                         output.Write("<polyline points=\"");
-                        IList<string> nodes = new List<string>();
+                        IList<string> nodes = new List<string>(way.Nodes.Length);
                         foreach (var node in way.Nodes)
                         {
                             if (nodesGeo.ContainsKey(node.Reference))
                             {
-                                var (longitude, latitude) = nodesGeo[node.Reference];
-
+                                var (longitude, latitude, _) = nodesGeo[node.Reference];
+                                nodesGeo[node.Reference] = (longitude, latitude, true);
                                 nodes.Add(
                                     $"{ConvertCoordinates(longitude - volgograd.Bounds.MinimumLongitude)} {ConvertCoordinates(latitude - volgograd.Bounds.MinimumLatitude)}");
                             }
@@ -59,6 +58,14 @@ namespace OSM
                         output.WriteLine("\" stroke=\"blue\" fill=\"transparent\" stroke-width=\"0.1\"/>");
                     }
                 }
+
+                //foreach (var node in nodesGeo.Values)
+                //{
+                //    if (node.used)
+                //    {
+                //        output.WriteLine($"<circle cx=\"{ConvertCoordinates(node.longitude - volgograd.Bounds.MinimumLongitude)}\" cy=\"{ConvertCoordinates(node.latitude - volgograd.Bounds.MinimumLatitude)}\" r=\"0.05\" fill=\"red\" />");
+                //    }
+                //}
 
                 output.WriteLine("</svg>");
             }
