@@ -1,6 +1,6 @@
 using System.Xml.Serialization;
 
-namespace OSM.Types
+namespace CityMap.Types
 {
     [XmlType("bounds")]
     public class Bounds

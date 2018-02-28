@@ -1,7 +1,7 @@
 using System;
 using System.Xml.Serialization;
 
-namespace OSM.Types
+namespace CityMap.Types
 {
     [XmlType("way")]
     public class Way

@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml.Serialization;
-using OSM.Types;
+using CityMap.Types;
 
-namespace OSM
+namespace CityMap
 {
     internal static class Program
     {

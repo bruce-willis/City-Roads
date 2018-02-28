@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27130.2036
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OSM", "OSM.csproj", "{CB5AEFD8-B947-439F-95C1-BC8740D3A000}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CityMap", "CityMap.csproj", "{CB5AEFD8-B947-439F-95C1-BC8740D3A000}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
