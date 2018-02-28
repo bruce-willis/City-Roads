@@ -25,8 +25,15 @@ namespace CityMap
 
             var nodesGeo = new Dictionary<ulong, (double longitude, double latitude, bool used)>(volgograd.Nodes.Length);
 
+            var culture =
+                (System.Globalization.CultureInfo)System.Threading.Thread.CurrentThread.CurrentCulture.Clone();
+            culture.NumberFormat.NumberDecimalSeparator = ".";
+            System.Threading.Thread.CurrentThread.CurrentCulture = culture;
 
-            using (var output = new StreamWriter("map_way.svg"))
+            using (StreamWriter output = new StreamWriter("map.svg"),
+                nodesWrite = new StreamWriter("nodes.csv"),
+                adjacencyMatrix = new StreamWriter("adjacency_matrix.csv"),
+                adjacencyList = new StreamWriter("adjacency_list.csv"))
             {
                 output.WriteLine("<?xml version=\"1.0\" standalone=\"no\"?>\r\n<svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\">");
 
@@ -38,7 +45,7 @@ namespace CityMap
 
                 foreach (var way in volgograd.Ways)
                 {
-                    if (way.Tags?.FirstOrDefault(t => t.Key == "highway") != null || true)
+                    if (way.Tags?.FirstOrDefault(t => t.Key == "highway") != null)
                     {
                         output.Write("<polyline points=\"");
                         IList<string> nodes = new List<string>(way.Nodes.Length);
@@ -51,6 +58,10 @@ namespace CityMap
                                 nodes.Add(
                                     $"{ConvertCoordinates(longitude - volgograd.Bounds.MinimumLongitude)} {ConvertCoordinates(latitude - volgograd.Bounds.MinimumLatitude)}");
                             }
+                            else
+                            {
+                                Console.WriteLine(node.Reference);
+                            }
                         }
 
                         output.Write(string.Join(", ", nodes));
@@ -58,14 +69,16 @@ namespace CityMap
                         output.WriteLine("\" stroke=\"blue\" fill=\"transparent\" stroke-width=\"0.1\"/>");
                     }
                 }
+                nodesWrite.WriteLine("id,longitude,latitude");
 
-                //foreach (var node in nodesGeo.Values)
-                //{
-                //    if (node.used)
-                //    {
-                //        output.WriteLine($"<circle cx=\"{ConvertCoordinates(node.longitude - volgograd.Bounds.MinimumLongitude)}\" cy=\"{ConvertCoordinates(node.latitude - volgograd.Bounds.MinimumLatitude)}\" r=\"0.05\" fill=\"red\" />");
-                //    }
-                //}
+                foreach (var node in nodesGeo)
+                {
+                    if (node.Value.used)
+                    {
+                        //output.WriteLine($"<circle cx=\"{ConvertCoordinates(node.Value.longitude - volgograd.Bounds.MinimumLongitude)}\" cy=\"{ConvertCoordinates(node.Value.latitude - volgograd.Bounds.MinimumLatitude)}\" r=\"0.05\" fill=\"red\" />");
+                        nodesWrite.WriteLine($"{node.Key},{node.Value.longitude},{node.Value.latitude}");
+                    }
+                }
 
                 output.WriteLine("</svg>");
             }
