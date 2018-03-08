@@ -30,10 +30,12 @@ namespace CityMap
             culture.NumberFormat.NumberDecimalSeparator = ".";
             System.Threading.Thread.CurrentThread.CurrentCulture = culture;
 
-            using (StreamWriter output = new StreamWriter("map.svg"),
-                nodesWrite = new StreamWriter("nodes.csv"),
-                adjacencyMatrix = new StreamWriter("adjacency_matrix.csv"),
-                adjacencyList = new StreamWriter("adjacency_list.csv"))
+            Directory.CreateDirectory("output");
+            
+            using (StreamWriter output = new StreamWriter(Path.Combine("output", "map.svg")),
+                nodesWrite = new StreamWriter(Path.Combine("output", "nodes.csv")),
+                adjacencyMatrix = new StreamWriter(Path.Combine("output", "adjacency_matrix.csv")),
+                adjacencyList = new StreamWriter(Path.Combine("output", "adjacency_list.csv")))
             {
                 output.WriteLine("<?xml version=\"1.0\" standalone=\"no\"?>\r\n<svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\">");
 
