@@ -16,11 +16,11 @@ namespace CityMap
         private static Dictionary<ulong, GeoPoint> _dictionary;
         private static City _city;
 
-        private static string ConvertToGeo(GeoPoint currentPoint, GeoPoint minPoint)
+        private static string ConvertToGeo(GeoPoint currentPoint, GeoPoint basicPoint)
         {
-            return $"{(currentPoint.X - minPoint.X) / 100.0} {(currentPoint.Y - minPoint.Y) / 100.0}";
+            return $"{(currentPoint.X - basicPoint.X) / 100.0} {(basicPoint.Y - currentPoint.Y) / 100.0}";
         }
-        
+
         private static void WriteNodesInfo()
         {
             using (var nodeWriter = new StreamWriter(Path.Combine(OutputDirectory, "nodes.csv")))
@@ -71,13 +71,13 @@ namespace CityMap
 
         private static void Main(string[] args)
         {
-            var culture = (CultureInfo) Thread.CurrentThread.CurrentCulture.Clone();
+            var culture = (CultureInfo)Thread.CurrentThread.CurrentCulture.Clone();
             culture.NumberFormat.NumberDecimalSeparator = ".";
             Thread.CurrentThread.CurrentCulture = culture;
 
             using (var reader = new StreamReader("VGG.osm"))
             {
-                _city = (City) new XmlSerializer(typeof(City)).Deserialize(reader);
+                _city = (City)new XmlSerializer(typeof(City)).Deserialize(reader);
             }
 
             if (_city.Bounds == null)
@@ -91,8 +91,7 @@ namespace CityMap
                 };
             }
 
-            var minimumPoint = new GeoPoint(_city.Bounds.MinimumLongitude, _city.Bounds.MinimumLatitude);
-            var maxPoint = new GeoPoint(_city.Bounds.MaximumLongitude, _city.Bounds.MaximumLatitude);
+            var basicPoint = new GeoPoint(_city.Bounds.MinimumLongitude, _city.Bounds.MaximumLatitude);
 
             _dictionary = new Dictionary<ulong, GeoPoint>(_city.Nodes.Count);
 
@@ -106,41 +105,64 @@ namespace CityMap
                 output.WriteLine(
                     "<?xml version=\"1.0\" standalone=\"no\"?>\r\n<svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\">");
 
+                var highways = new Dictionary<string, (string color, double width)>
+                {
+                    ["motorway"] = ("palevioletred", 1.2),
+                    ["motorway_link"] = ("palevioletred", 1.2),
+
+                    ["trunk"] = ("chocolate", 1.4),
+                    ["trunk_link"] = ("chocolate", 1.4),
+
+                    ["primary"] = ("lightsalmon", 1.2),
+                    ["primary_link"] = ("lightsalmon", 1.2),
+
+                    ["secondary"] = ("indianred", 0.8),
+                    ["secondary_link"] = ("indianred", 0.8),
+
+                    ["tertiary"] = ("darkred", 0.1),
+                    ["tertiary_link"] = ("darkred", 0.1),
+
+                    ["unclassified"] = ("darkred", 0.1),
+                    ["residential"] = ("darkred", 0.1),
+                    ["service"] = ("darkred", 0.1),
+                    ["living_street"] = ("darkred", 0.1),
+                    ["road"] = ("darkred", 0.1)
+                };
 
                 foreach (var way in _city.Ways)
-                    if (way.Tags?.FirstOrDefault(t => t.Key == "highway") != null)
-                    {
-                        var index = way.Nodes.ToList().FindIndex(n => _dictionary.ContainsKey(n.Reference));
+                {
+                    var isHighway = way.Tags?.FirstOrDefault(t => t.Key == "highway" && highways.ContainsKey(t.Value));
+                    if (isHighway == null) continue;
 
-                        if (index == -1) continue;
+                    var index = way.Nodes.FindIndex(n => _dictionary.ContainsKey(n.Reference));
 
-                        var previuosNode = way.Nodes[index].Reference;
+                    if (index == -1) continue;
 
-                        output.Write("<polyline points=\"");
-                        output.Write(ConvertToGeo(_dictionary[previuosNode], minimumPoint));
+                    var previuosNode = way.Nodes[index].Reference;
 
-                        foreach (var node in way.Nodes.ToList().Skip(index + 1))
-                            if (_dictionary.ContainsKey(node.Reference))
-                            {
-                                var point = _dictionary[node.Reference];
-                                point.Used = true;
+                    output.Write("<polyline points=\"");
+                    output.Write(ConvertToGeo(_dictionary[previuosNode], basicPoint));
 
-                                point.Adjency.Add(previuosNode);
-                                _dictionary[previuosNode].Adjency.Add(node.Reference);
+                    foreach (var node in way.Nodes.ToList().Skip(index + 1))
+                        if (_dictionary.ContainsKey(node.Reference))
+                        {
+                            var point = _dictionary[node.Reference];
+                            point.Used = true;
+
+                            point.Adjency.Add(previuosNode);
+                            _dictionary[previuosNode].Adjency.Add(node.Reference);
 
 
-                                output.Write($", {ConvertToGeo(point, minimumPoint)}");
-                                previuosNode = node.Reference;
-                            }
-                            else
-                            {
-                                Console.WriteLine(node.Reference);
-                            }
+                            output.Write($", {ConvertToGeo(point, basicPoint)}");
+                            previuosNode = node.Reference;
+                        }
+                        else
+                        {
+                            Console.WriteLine(node.Reference);
+                        }
 
-                        output.WriteLine(way.Tags?.FirstOrDefault(t => t.Value == "primary") != null
-                            ? "\" stroke=\"brown\" fill=\"transparent\" stroke-width=\"0.6\"/>"
-                            : "\" stroke=\"blue\" fill=\"transparent\" stroke-width=\"0.1\"/>");
-                    }
+                    output.WriteLine($"\" stroke=\"{highways[isHighway.Value].color}\" fill=\"transparent\" stroke-width=\"{highways[isHighway.Value].width}\"/>");
+                }
 
                 output.WriteLine("</svg>");
 
