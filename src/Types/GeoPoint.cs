@@ -39,6 +39,6 @@ namespace CityMap.Types
         public double X { get; set; }
         public double Y { get; set; }
 
-        public List<ulong> Adjency { get; } = new List<ulong>();
+        public HashSet<ulong> Adjency { get; } = new HashSet<ulong>();
     }
 }

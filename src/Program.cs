@@ -20,8 +20,7 @@ namespace CityMap
         {
             return $"{(currentPoint.X - minPoint.X) / 100.0} {(currentPoint.Y - minPoint.Y) / 100.0}";
         }
-
-
+        
         private static void WriteNodesInfo()
         {
             using (var nodeWriter = new StreamWriter(Path.Combine(OutputDirectory, "nodes.csv")))
@@ -81,7 +80,7 @@ namespace CityMap
                 _city = (City) new XmlSerializer(typeof(City)).Deserialize(reader);
             }
 
-            if (_city?.Bounds.MinimumLatitude == 0 || _city?.Bounds.MinimumLatitude == 0)
+            if (_city.Bounds == null)
             {
                 _city.Bounds = new Bounds
                 {
@@ -94,7 +93,6 @@ namespace CityMap
 
             var minimumPoint = new GeoPoint(_city.Bounds.MinimumLongitude, _city.Bounds.MinimumLatitude);
             var maxPoint = new GeoPoint(_city.Bounds.MaximumLongitude, _city.Bounds.MaximumLatitude);
-
 
             _dictionary = new Dictionary<ulong, GeoPoint>(_city.Nodes.Count);
 
