@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Xml.Serialization;
 
 namespace CityMap.Types
@@ -7,7 +8,7 @@ namespace CityMap.Types
     public class Node
     {
         [XmlElement("tag")]
-        public Tag[] Tags { get; set; }
+        public List<Tag> Tags { get; set; }
 
         [XmlAttribute("id")]
         public ulong Id { get; set; }

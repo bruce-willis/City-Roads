@@ -1,4 +1,5 @@
-﻿using System.Xml.Serialization;
+﻿using System.Collections.Generic;
+using System.Xml.Serialization;
 
 namespace CityMap.Types
 {
@@ -9,13 +10,13 @@ namespace CityMap.Types
         public Bounds Bounds { get; set; }
 
         [XmlElement("node")]
-        public Node[] Nodes { get; set; }
+        public List<Node> Nodes { get; set; }
 
         [XmlElement("way")]
-        public Way[] Ways { get; set; }
+        public List<Way> Ways { get; set; }
 
         [XmlElement("relation")]
-        public Relation[] Relations { get; set; }
+        public List<Relation> Relations { get; set; }
 
         [XmlAttribute("version")]
         public decimal Version { get; set; }
