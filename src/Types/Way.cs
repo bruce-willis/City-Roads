@@ -30,5 +30,29 @@ namespace CityMap.Types
 
         [XmlAttribute("changeset")]
         public uint Changeset { get; set; }
+
+        public static readonly Dictionary<string, (string color, double width)> AcceptedHighways = new Dictionary<string, (string color, double width)>
+        {
+            ["motorway"] = ("palevioletred", 1.2),
+            ["motorway_link"] = ("palevioletred", 1.2),
+
+            ["trunk"] = ("chocolate", 1.4),
+            ["trunk_link"] = ("chocolate", 1.4),
+
+            ["primary"] = ("lightsalmon", 1.2),
+            ["primary_link"] = ("lightsalmon", 1.2),
+
+            ["secondary"] = ("indianred", 0.8),
+            ["secondary_link"] = ("indianred", 0.8),
+
+            ["tertiary"] = ("darkred", 0.1),
+            ["tertiary_link"] = ("darkred", 0.1),
+
+            ["unclassified"] = ("darkred", 0.1),
+            ["residential"] = ("darkred", 0.1),
+            ["service"] = ("darkred", 0.1),
+            ["living_street"] = ("darkred", 0.1),
+            ["road"] = ("darkred", 0.1)
+        };
     }
 }
