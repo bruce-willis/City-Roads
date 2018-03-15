@@ -1,61 +1,64 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
+using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading;
 using System.Xml.Serialization;
 using CityMap.Helpers;
 using CityMap.Types;
 using CommandLine;
-using CommandLine.Text;
 
 namespace CityMap
 {
     internal static class Program
     {
-        private static City _city;
-        private static Options _options = new Options();
-        
-
         private static void Main(string[] args)
         {
+            Options options = null;
             Parser.Default.ParseArguments<Options>(args)
-                .WithParsed(res => _options = res)
+                .WithParsed(res => options = res)
                 .WithNotParsed(err => Environment.Exit(1));
 
-            if (!File.Exists(_options.FileName))
+            var stopWatch = Stopwatch.StartNew();
+
+            if (!File.Exists(options.FileName))
             {
-                Console.WriteLine($"File {_options.FileName} doesn't exist.");
+                Console.WriteLine($"File {options.FileName} doesn't exist.");
                 return;
             }
 
+            Console.WriteLine($"Start parsing file: {options.FileName}");
+
+            City city = null;
             try
             {
-                using (var reader = new StreamReader(_options.FileName))
-                    _city = (City) new XmlSerializer(typeof(City)).Deserialize(reader);
+                using (var reader = new StreamReader(options.FileName))
+                {
+                    city = (City) new XmlSerializer(typeof(City)).Deserialize(reader);
+                }
             }
             catch (Exception e)
             {
-                Console.WriteLine($"Unable to parse osm file: {e.Message}. See about downloading here: https://github.com/bruce-willis/City-Roads/blob/develop/docs/download.md");
+                Console.WriteLine(
+                    $"Unable to parse osm file: {e.Message}. See about downloading here: https://github.com/bruce-willis/City-Roads/blob/develop/docs/download.md");
             }
 
+            Console.WriteLine($"End parsing file. Spent time: {stopWatch.Elapsed}");
+
+            SvgHelper.GenerateSvg(city, options);
+
+            if (options.GenerateNodesList)
+                CsvHelper.WriteNodesInfo(options.OutputDirectory);
+
+            if (options.GenerateAdjacencyList)
+                CsvHelper.WriteAdjacencyList(options.OutputDirectory);
+
+            if (options.GenerateAdjacencyMatrix)
+                CsvHelper.WriteAdjacencyMatrix(options.OutputDirectory);
 
 
-            SvgHelper.GenerateSvg(_city, _options);
-
-            if (_options.GenerateNodesList)
-                CsvHelper.WriteNodesInfo(_options.OutputDirectory);
-
-            if (_options.GenerateAdjacencyList)
-                CsvHelper.WriteAdjacencyList(_options.OutputDirectory);
-
-            if (_options.GenerateAdjacencyMatrix)
-                CsvHelper.WriteAdjacencyMatrix(_options.OutputDirectory);
-
-            
-            Console.WriteLine("Job done! Now it's time for tea");
+            Console.WriteLine($"\nJob done! Now it's time for tea. Total time elapsed: {stopWatch.Elapsed}");
+            Console.WriteLine(new Random().Next(0, 2) == 1
+                ? "Лучший в СПбГУ - Факультет ПМ-ПУ"
+                : "Ответ на главный вопрос жизни, вселенной и всего такого - 42");
         }
     }
 }
