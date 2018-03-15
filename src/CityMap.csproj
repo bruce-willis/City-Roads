@@ -6,5 +6,9 @@
     <StartWorkingDirectory>$(MSBuildProjectDirectory)</StartWorkingDirectory>
     <!--<RunWorkingDirectory>$(MSBuildStartupDirectory)</RunWorkingDirectory>-->
   </PropertyGroup>
-
+  
+  <ItemGroup>
+    <PackageReference Include="CommandLineParser" Version="2.2.1" />
+  </ItemGroup>
+  
 </Project>
