@@ -1,0 +1,13 @@
+version: 1.0.{build}
+image: Visual Studio 2017
+before_build:
+  - pwsh: dotnet --version
+  # Display minimal restore text
+  - pwsh: dotnet restore ./src/CityMap.csproj --verbosity m
+build_script:
+  - pwsh: dotnet build ./src/CityMap.csproj
+  - pwsh: dotnet publish ./src/CityMap.csproj -c Release -r win10-x64
+artifacts:
+ - path: 'src\bin\Release\netcoreapp2.0\win10-x64\publish'
+   name: win10
+deploy: off
