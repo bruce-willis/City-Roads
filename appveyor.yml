@@ -5,6 +5,7 @@
   branches:
     except:
       - master
+      - gh-pages
   before_build:
     - pwsh: dotnet --version
   build_script:
