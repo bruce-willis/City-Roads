@@ -2,11 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Xml.Serialization;
 
-namespace CityMap.Types
+namespace CityMap.Types.OSM
 {
-    [XmlType("Node")]
-    public class Node
+    [XmlType("relation")]
+    public class Relation
     {
+        [XmlElement("member")]
+        public List<Member> Members { get; set; }
+
         [XmlElement("tag")]
         public List<Tag> Tags { get; set; }
 
@@ -14,7 +17,7 @@ namespace CityMap.Types
         public ulong Id { get; set; }
 
         [XmlAttribute("version")]
-        public byte Version { get; set; }
+        public ushort Version { get; set; }
 
         [XmlAttribute("timestamp")]
         public DateTime Timestamp { get; set; }
@@ -27,11 +30,5 @@ namespace CityMap.Types
 
         [XmlAttribute("changeset")]
         public uint Changeset { get; set; }
-
-        [XmlAttribute("lat")]
-        public double Latitude { get; set; }
-
-        [XmlAttribute("lon")]
-        public double Longitude { get; set; }
     }
 }

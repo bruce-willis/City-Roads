@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using CityMap.Types;
+using CityMap.Types.OSM;
 
 namespace CityMap.Helpers
 {
@@ -15,10 +16,6 @@ namespace CityMap.Helpers
         public static GeoPoint BasicPoint;
         public static void GenerateSvg(City city, Options options)
         {
-            var stopWatch = Stopwatch.StartNew();
-
-            Console.Write("Start generationg svg file. ");
-
             if (city.Bounds == null)
             {
                 city.Bounds = new Bounds
@@ -53,6 +50,7 @@ namespace CityMap.Helpers
                     if (index == -1) continue;
 
                     var previuosNode = way.Nodes[index].Reference;
+                    Dictionary[previuosNode].Used = true;
 
                     output.Write("<polyline points=\"");
                     output.Write(GeoHelper.ConvertToGeo(Dictionary[previuosNode]));
@@ -75,8 +73,32 @@ namespace CityMap.Helpers
                 output.WriteLine("</svg>");
 
                 Dictionary = Dictionary.Where(n => n.Value.Used).ToDictionary(n => n.Key, n => n.Value);
-                Console.WriteLine($"Elapsed time: {stopWatch.Elapsed}");
                 //Console.WriteLine($"There are {edges} of {(ulong)_dictionary.Count * (ulong)_dictionary.Count} edges. It's {edges * 100.0 / _dictionary.Count / _dictionary.Count}% of possible");
+            }
+        }
+
+        public static void DisplayShortestPathes(string outputDirectory, ulong startId, IEnumerable<ulong> goals,
+            IReadOnlyDictionary<ulong, ulong> ancestors)
+        {
+            var lines = File.ReadAllLines(Path.Combine(outputDirectory, "map.svg")).SkipLast(1).ToList();
+            File.WriteAllLines(Path.Combine(outputDirectory, "pathes.svg"), lines);
+            using (var output = new StreamWriter(Path.Combine(outputDirectory, "pathes.svg"), true))
+            {
+                string[] coordinates;
+                foreach (var goalId in goals.Skip(1))
+                {
+                    output.WriteLine($"<polyline points=\"{string.Join(", ", DistanceHelper.RestorePath(startId, goalId, ancestors).Select(x => GeoHelper.ConvertToGeo(Dictionary[x])))}\" " +
+                                 "stroke=\"darkcyan\" fill=\"transparent\" stroke-width=\"2\"/>");
+                    coordinates = GeoHelper.ConvertToGeo(Dictionary[goalId]).Split();
+                    output.WriteLine($"<circle cx=\"{coordinates.First()}\" cy=\"{coordinates.Last()}\" r=\"3\" fill=\"navy(16)\" />");
+                }
+                output.WriteLine($"<polyline points=\"{string.Join(", ", DistanceHelper.RestorePath(startId, goals.First(), ancestors).Select(x => GeoHelper.ConvertToGeo(Dictionary[x])))}\" " +
+                                 "stroke=\"cornflowerblue\" fill=\"transparent\" stroke-width=\"2.5\"/>");
+                coordinates = GeoHelper.ConvertToGeo(Dictionary[goals.First()]).Split();
+                output.WriteLine($"<circle cx=\"{coordinates.First()}\" cy=\"{coordinates.Last()}\" r=\"3.5\" fill=\"mediumblue\" />");
+                coordinates = GeoHelper.ConvertToGeo(Dictionary[startId]).Split();
+                output.WriteLine($"<circle cx=\"{coordinates.First()}\" cy=\"{coordinates.Last()}\" r=\"4\" fill=\"limegreen\" />");
+                output.WriteLine("</svg>");
             }
         }
     }
