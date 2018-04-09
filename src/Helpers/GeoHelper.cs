@@ -5,6 +5,7 @@ namespace CityMap.Helpers
 {
     public static class GeoHelper
     {
+        private const double AverageRadiusOfEarthKm = 6371;
         public static string ConvertToGeo(GeoPoint currentPoint)
         {
             return
@@ -32,6 +33,26 @@ namespace CityMap.Helpers
                                  Math.Pow((1 - e * Math.Sin(rLat)) / (1 + e * Math.Sin(rLat)), e / 2.0));
 
             return (x, y);
+        }
+
+        /// <summary>
+        /// Calculate distance between two points
+        /// </summary>
+        /// <see cref="https://en.wikipedia.org/wiki/Haversine_formula"/>
+        /// <see cref="https://www.movable-type.co.uk/scripts/latlong.html"/>
+        /// <see cref="https://stackoverflow.com/questions/27928/calculate-distance-between-two-latitude-longitude-points-haversine-formula"/>
+        /// <see cref="http://gis-lab.info/qa/great-circles.html"/>
+        /// <returns>Distance in km</returns>
+        public static double DistanceBetweenPoints(this GeoPoint current, GeoPoint to)
+        {
+            var deltaLat = ConvertToRadians(current.Latitude - to.Latitude);
+            var deltaLon = ConvertToRadians(current.Longitude - to.Longitude);
+
+            var a = Math.Sin(deltaLat / 2) * Math.Sin(deltaLat / 2) + Math.Cos(ConvertToRadians(current.Latitude)) *
+                    Math.Cos(ConvertToRadians(to.Latitude)) * Math.Sin(deltaLon / 2) * Math.Sin(deltaLon / 2);
+
+            var angle = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+            return angle * AverageRadiusOfEarthKm;
         }
     }
 }

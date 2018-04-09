@@ -1,4 +1,4 @@
 theme: jekyll-theme-cayman
-title: [Граф дорог городов России]
-description: [Задание по курсу "Теория конечных графов и ее приложения"]
-show_downloads: ["true"]
+title: Граф дорог городов России
+description: Задание по курсу "Теория конечных графов и ее приложения"
+show_downloads: true

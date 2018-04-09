@@ -1,6 +1,6 @@
 using System.Xml.Serialization;
 
-namespace CityMap.Types
+namespace CityMap.Types.OSM
 {
     [XmlType("nd")]
     public class WayNode

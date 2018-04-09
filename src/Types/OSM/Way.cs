@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Xml.Serialization;
 
-namespace CityMap.Types
+namespace CityMap.Types.OSM
 {
     [XmlType("way")]
     public class Way
