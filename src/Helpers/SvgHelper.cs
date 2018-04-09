@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using CityMap.Types;
+using CityMap.Types.OSM;
 
 namespace CityMap.Helpers
 {

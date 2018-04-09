@@ -4,6 +4,7 @@ using System.IO;
 using System.Xml.Serialization;
 using CityMap.Helpers;
 using CityMap.Types;
+using CityMap.Types.OSM;
 using CommandLine;
 
 namespace CityMap
