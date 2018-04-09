@@ -1,16 +1,15 @@
-- version: 1.0.{build}
-- image: Visual Studio 2017
+version: 1.0.{build}
+image: Visual Studio 2017
 
--
-  branches:
-    except:
-      - master
-      - gh-pages
-  before_build:
-    - pwsh: dotnet --version
-  build_script:
-    - pwsh: dotnet build ./src/CityMap.csproj -c Release
+branches:
+  except:
+  - gh-pages
+before_build:
+  - pwsh: dotnet --version
+build_script:
+  - pwsh: dotnet build ./src/CityMap.csproj -c Release
 
+for:
 - 
   branches:
     only:
