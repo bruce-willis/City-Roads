@@ -16,10 +16,6 @@ namespace CityMap.Helpers
         public static GeoPoint BasicPoint;
         public static void GenerateSvg(City city, Options options)
         {
-            var stopWatch = Stopwatch.StartNew();
-
-            Console.Write("Start generationg svg file. ");
-
             if (city.Bounds == null)
             {
                 city.Bounds = new Bounds
@@ -54,6 +50,7 @@ namespace CityMap.Helpers
                     if (index == -1) continue;
 
                     var previuosNode = way.Nodes[index].Reference;
+                    Dictionary[previuosNode].Used = true;
 
                     output.Write("<polyline points=\"");
                     output.Write(GeoHelper.ConvertToGeo(Dictionary[previuosNode]));
@@ -76,7 +73,6 @@ namespace CityMap.Helpers
                 output.WriteLine("</svg>");
 
                 Dictionary = Dictionary.Where(n => n.Value.Used).ToDictionary(n => n.Key, n => n.Value);
-                Console.WriteLine($"Elapsed time: {stopWatch.Elapsed}");
                 //Console.WriteLine($"There are {edges} of {(ulong)_dictionary.Count * (ulong)_dictionary.Count} edges. It's {edges * 100.0 / _dictionary.Count / _dictionary.Count}% of possible");
             }
         }

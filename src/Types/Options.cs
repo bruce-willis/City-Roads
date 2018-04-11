@@ -10,10 +10,10 @@ namespace CityMap.Types
         [Option('o', "output", Default = "Output", HelpText = "Output directory name")]
         public string OutputDirectory { get; set; }
 
-        [Option('n', "write-nodes", Default = true, HelpText = "Create csv file with information about nodes")]
+        [Option('n', "write-nodes", Default = false, HelpText = "Create csv file with information about nodes")]
         public bool GenerateNodesList { get; set; }
 
-        [Option('l', "write-list", Default = true, HelpText = "Create csv file with adjacency list")]
+        [Option('l', "write-list", Default = false, HelpText = "Create csv file with adjacency list")]
         public bool GenerateAdjacencyList { get; set; }
 
         [Option('m', "write-matrix", Default = false,

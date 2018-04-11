@@ -26,34 +26,37 @@ namespace CityMap
                 return;
             }
 
-            Console.WriteLine($"Start parsing file: {options.FileName}");
+            Console.Write($"Start parsing file: {options.FileName} ");
 
-            City city = null;
+            City city;
             try
             {
                 using (var reader = new StreamReader(options.FileName))
                 {
-                    city = (City) new XmlSerializer(typeof(City)).Deserialize(reader);
+                    city = (City)new XmlSerializer(typeof(City)).Deserialize(reader);
                 }
             }
             catch (Exception e)
             {
                 Console.WriteLine(
                     $"Unable to parse osm file: {e.Message}. See about downloading here: https://github.com/bruce-willis/City-Roads/blob/develop/docs/download.md");
+                return;
             }
 
-            Console.WriteLine($"End parsing file. Spent time: {stopWatch.Elapsed}");
+            Console.WriteLine($"Elapsed time: {stopWatch.Elapsed}");
 
-            SvgHelper.GenerateSvg(city, options);
+            TimeHelper.MeasureTime(() => SvgHelper.GenerateSvg(city, options), "generationg svg file");
+
+            DistanceHelper.AddNodes(city);
 
             if (options.GenerateNodesList)
-                CsvHelper.WriteNodesInfo(options.OutputDirectory);
+                TimeHelper.MeasureTime(() => CsvHelper.WriteNodesInfo(options.OutputDirectory), "creating csv with nodes' information");
 
             if (options.GenerateAdjacencyList)
-                CsvHelper.WriteAdjacencyList(options.OutputDirectory);
+                TimeHelper.MeasureTime(() => CsvHelper.WriteAdjacencyList(options.OutputDirectory), "creating csv with adjacency list");
 
             if (options.GenerateAdjacencyMatrix)
-                CsvHelper.WriteAdjacencyMatrix(options.OutputDirectory);
+                TimeHelper.MeasureTime(() => CsvHelper.WriteAdjacencyMatrix(options.OutputDirectory), "creating csv with adjacency matrix");
 
 
             Console.WriteLine($"\nJob done! Now it's time for tea. Total time elapsed: {stopWatch.Elapsed}");
