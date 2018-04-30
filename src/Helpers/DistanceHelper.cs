@@ -41,19 +41,20 @@ namespace CityMap.Helpers
             //    max = Math.Max(max, node.Adjency.Count);
             //}
 
-            var (distD, p) = TimeHelper.MeasureTimeAlgorithm(() => Dijkstra.Calculate(), "Dijkstra");
-            var (dist, _) = TimeHelper.MeasureTimeAlgorithm(() => Levit.Calculate(), "Levit");
-            
-            double max = 0, s = 0;
-            foreach (var d in distD)
+            var (distD, pD) = TimeHelper.MeasureTimeAlgorithm(() => Dijkstra.Calculate(), "Dijkstra");
+            var (dist, p) = TimeHelper.MeasureTimeAlgorithm(() => Levit.Calculate(), "Levit");
+
+            var differences = dist.Values.Zip(distD.Values, (d, l) => Math.Abs(d - l)).ToList();
+
+            foreach (var pred in pD)
             {
-                max = Math.Max(max, Math.Abs(d.Value - dist[d.Key]));
-                s += Math.Abs(d.Value - dist[d.Key]);
+                if (pred.Value != p[pred.Key])
+                {
+                    Console.WriteLine("Bad");
+                }
             }
 
-            var avg = s / dist.Count;
-
-            Console.WriteLine($"sum - {s}\t max - {max}\t avg - {avg}");
+            Console.WriteLine($"sum - {differences.Sum()}\t max - {differences.Max()}\t avg - {differences.Average()}");
         }
     }
 }
