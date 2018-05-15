@@ -1,9 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using CityMap.Helpers;
 
-namespace CityMap.Algorithms
+namespace CityMap.Algorithms.Shortest_Path
 {
     /// <see cref="https://neerc.ifmo.ru/wiki/index.php?title=Алгоритм_Левита"/>
     public static class Levit

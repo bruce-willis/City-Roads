@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using CityMap.Algorithms.Travelling_salesman;
 using CityMap.Types;
 
 namespace CityMap.Helpers
@@ -68,12 +69,28 @@ namespace CityMap.Helpers
                 foreach (var goalId in goals)
                 {
                     double time = distances[goalId] / 40;
-                    int hours = (int) time;
-                    double m =  (time - hours) * 60;
-                    int minutes = (int) m;
-                    int seconds = (int) Math.Round((m - minutes) * 60);
+                    int hours = (int)time;
+                    double m = (time - hours) * 60;
+                    int minutes = (int)m;
+                    int seconds = (int)Math.Round((m - minutes) * 60);
                     pathWriter.WriteLine($"{startId}, {goalId}, {distances[goalId]}, {new TimeSpan(hours, minutes, seconds).ToString()}, [{string.Join("->", DistanceHelper.RestorePath(startId, goalId, ancestors))}]");
                 }
+            }
+        }
+
+        public static void WriteSalesmanPath(string outputDirectory, string filename, IReadOnlyList<ulong> order)
+        {
+            using (var pathWriter = new StreamWriter(Path.Combine(outputDirectory, "Salesman", $"{filename}.csv")))
+            {
+                pathWriter.WriteLine("Number, node id, distance, path");
+                pathWriter.WriteLine($"0, {order.First()}, 0, []");
+                for (int i = 1; i < order.Count; ++i)
+                {
+                    var from = order[i - 1];
+                    var current = order[i];
+                    pathWriter.WriteLine($"{i}, {current}, {CommonSalesman.Distances[(from, current)].distance}, [{string.Join("->", CommonSalesman.Distances[(from, current)].path)}]");
+                }
+                pathWriter.WriteLine($"{order.Count}, {order.First()}, {CommonSalesman.Distances[(order.Last(), order.First())].distance}, [{string.Join("->", CommonSalesman.Distances[(order.Last(), order.First())].path)}]");
             }
         }
     }

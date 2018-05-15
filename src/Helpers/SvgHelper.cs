@@ -5,6 +5,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using CityMap.Algorithms.Travelling_salesman;
 using CityMap.Types;
 using CityMap.Types.OSM;
 
@@ -98,6 +99,30 @@ namespace CityMap.Helpers
                 output.WriteLine($"<circle cx=\"{coordinates.First()}\" cy=\"{coordinates.Last()}\" r=\"3.5\" fill=\"mediumblue\" />");
                 coordinates = GeoHelper.ConvertToGeo(Dictionary[startId]).Split();
                 output.WriteLine($"<circle cx=\"{coordinates.First()}\" cy=\"{coordinates.Last()}\" r=\"4\" fill=\"limegreen\" />");
+                output.WriteLine("</svg>");
+            }
+        }
+
+        public static void DisplaySalesmanPath(string outputDirectory, string filename, IReadOnlyList<ulong> order)
+        {
+            var lines = File.ReadAllLines(Path.Combine(outputDirectory, "map.svg")).SkipLast(1).ToList();
+            File.WriteAllLines(Path.Combine(outputDirectory, "Salesman", $"{filename}.svg"), lines);
+            using (var output = new StreamWriter(Path.Combine(outputDirectory, "Salesman", $"{filename}.svg"), true))
+            {
+                var coordinates = GeoHelper.ConvertToGeo(Dictionary[order.First()]).Split();
+                output.WriteLine($"<circle cx=\"{coordinates.First()}\" cy=\"{coordinates.Last()}\" r=\"7\" fill=\"cornflowerblue\" />");
+
+                for (int i = 0; i < order.Count - 1; ++i)
+                {
+                    output.WriteLine($"<polyline points=\"{string.Join(", ", CommonSalesman.Distances[(order[i], order[i + 1])].path.Select(x => GeoHelper.ConvertToGeo(Dictionary[x])))}\" " +
+                                      "stroke=\"darkcyan\" fill=\"transparent\" stroke-width=\"2\"/>");
+                    coordinates = GeoHelper.ConvertToGeo(Dictionary[order[i]]).Split();
+                    output.WriteLine($"<circle cx=\"{coordinates.First()}\" cy=\"{coordinates.Last()}\" r=\"7\" stroke=\"darkblue\" stroke-width=\"1\" fill=\"none\"/> <text x=\"{coordinates.First()}\" y=\"{coordinates.Last()}\" text-anchor=\"middle\" stroke=\"black\" stroke-width=\"1px\" dy=\".3em\">{i}</text>");
+                }
+                output.WriteLine($"<polyline points=\"{string.Join(", ", CommonSalesman.Distances[(order.Last(), order.First())].path.Select(x => GeoHelper.ConvertToGeo(Dictionary[x])))}\" " +
+                                 "stroke=\"darkcyan\" fill=\"transparent\" stroke-width=\"2\"/>");
+                coordinates = GeoHelper.ConvertToGeo(Dictionary[order.Last()]).Split();
+                output.WriteLine($"<circle cx=\"{coordinates.First()}\" cy=\"{coordinates.Last()}\" r=\"7\" stroke=\"darkblue\" stroke-width=\"1\" fill=\"none\"/> <text x=\"{coordinates.First()}\" y=\"{coordinates.Last()}\" text-anchor=\"middle\" stroke=\"black\" stroke-width=\"1px\" dy=\".3em\">{order.Count - 1}</text>");
                 output.WriteLine("</svg>");
             }
         }
