@@ -49,8 +49,9 @@ namespace CityMap.Helpers
 
             // compare Dijkstra and Levit
             var differences = distL.Values.Zip(distD.Values, (d, l) => Math.Abs(d - l)).ToList();
-            Console.WriteLine($"sum - {differences.Sum()}\t max - {differences.Max()}\t avg - {differences.Average()}");
-            Console.WriteLine(pD.OrderBy(x => x.Key).SequenceEqual(pL.OrderBy(x => x.Key)));
+            Console.WriteLine("Compare results for Dijkstra and Levit algorithms.");
+            Console.WriteLine($"Difference between distances:\t sum - {differences.Sum()}\t max - {differences.Max()}\t avg - {differences.Average()}");
+            Console.WriteLine($"Ancestors lists are {(pD.OrderBy(x => x.Key).SequenceEqual(pL.OrderBy(x => x.Key)) ? "equal" : "not equal")}\n");
 
             var heuristicsFunctions = new List<Func<GeoPoint, GeoPoint, double>>
             {
@@ -74,7 +75,7 @@ namespace CityMap.Helpers
             }
 
             foreach (var difference in heuristicsDifferences)
-                Console.WriteLine($"For {difference.Key.Method.Name} heuristic\n" +
+                Console.WriteLine($"For {difference.Key.Method.Name} heuristic difference between distances:\n" +
                                   $"sum - {difference.Value.Sum()}\t max - {difference.Value.Max()}\t avg - {difference.Value.Average()}");
         }
 
