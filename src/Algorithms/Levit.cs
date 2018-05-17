@@ -5,6 +5,7 @@ using CityMap.Helpers;
 
 namespace CityMap.Algorithms
 {
+    /// <see cref="https://neerc.ifmo.ru/wiki/index.php?title=Алгоритм_Левита"/>
     public static class Levit
     {
         private enum Status
@@ -14,7 +15,7 @@ namespace CityMap.Algorithms
             NotYet
         }
 
-        public static (Dictionary<ulong, double>, Dictionary<ulong, ulong>) Calculate(ulong startId = 4198407189)
+        public static (Dictionary<ulong, double>, Dictionary<ulong, ulong>) Calculate(ulong startId)
         {
             var distance = SvgHelper.Dictionary.ToDictionary(k => k.Key, v => double.MaxValue);
             var p = new Dictionary<ulong, ulong>(SvgHelper.Dictionary.Count);
@@ -38,20 +39,20 @@ namespace CityMap.Algorithms
                         case Status.NotYet:
                             queue.Enqueue(to);
                             status[to] = Status.Now;
-                            if (distance[to] > len)
+                            if (len < distance[to])
                             {
                                 distance[to] = len;
                                 p[to] = u;
                             }
                             break;
                         case Status.Now:
-                            if (distance[to] > len)
+                            if (len < distance[to])
                             {
                                 distance[to] = len;
                                 p[to] = u;
                             }
                             break;
-                        case Status.Already when distance[to] > len:
+                        case Status.Already when len < distance[to]:
                             priorityQueue.Enqueue(to);
                             status[to] = Status.Now;
                             distance[to] = len;
