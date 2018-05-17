@@ -35,6 +35,14 @@ namespace CityMap.Helpers
             return (x, y);
         }
 
+        /// <summary>
+        /// Calculate distance between two points
+        /// </summary>
+        /// <see cref="https://en.wikipedia.org/wiki/Haversine_formula"/>
+        /// <see cref="https://www.movable-type.co.uk/scripts/latlong.html"/>
+        /// <see cref="https://stackoverflow.com/questions/27928/calculate-distance-between-two-latitude-longitude-points-haversine-formula"/>
+        /// <see cref="http://gis-lab.info/qa/great-circles.html"/>
+        /// <returns>Distance in km</returns>
         public static double DistanceBetweenPoints(this GeoPoint current, GeoPoint to)
         {
             var deltaLat = ConvertToRadians(current.Latitude - to.Latitude);

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using CityMap.Algorithms;
 using CityMap.Types;
@@ -12,49 +13,85 @@ namespace CityMap.Helpers
         private const string Amenity = "school";
         private const double SmallDistance = 0.3;
 
-        public static void AddNodes(City city)
+        public static void CompareAlgorithms(City city)
         {
-            var destinations = city.Nodes.Where(n => n.Tags.Exists(t => t.Key == "amenity" && t.Value == Amenity)).ToDictionary(k => k.Id, v => new GeoPoint(v.Longitude, v.Latitude));
+            var destinations = city.Nodes.Where(n => n.Tags.Exists(t => t.Key == "amenity" && t.Value == Amenity))
+                .ToDictionary(k => k.Id, v => new GeoPoint(v.Longitude, v.Latitude));
 
             var size = destinations.Count;
 
-            foreach (var node in city.Nodes)
+            foreach (var node in SvgHelper.Dictionary)
             {
-                if (!SvgHelper.Dictionary.ContainsKey(node.Id)) continue;
                 foreach (var dest in destinations)
-                {
-                    if (dest.Value.DistanceBetweenPoints(new GeoPoint(node.Longitude, node.Latitude)) < SmallDistance)
+                    if (dest.Value.DistanceBetweenPoints(new GeoPoint(node.Value.Longitude, node.Value.Latitude)) < SmallDistance)
                     {
-                        dest.Value.Adjency.Add(node.Id);
-                        SvgHelper.Dictionary[node.Id].Adjency.Add(dest.Key);
+                        var realDistance = dest.Value.DistanceBetweenPoints(new GeoPoint(node.Value.Longitude, node.Value.Latitude));
+                        var chebyshev = HeuristicFunctions.ChebyshevDistance(dest.Value, new GeoPoint(node.Value.Longitude, node.Value.Latitude));
+                        var euclidean = HeuristicFunctions.EuclideanDistance(dest.Value, new GeoPoint(node.Value.Longitude, node.Value.Latitude));
+                        var manhattan = HeuristicFunctions.ManhattanDistance(dest.Value, new GeoPoint(node.Value.Longitude, node.Value.Latitude));
+                        dest.Value.Adjency.Add(node.Key);
+                        SvgHelper.Dictionary[node.Key].Adjency.Add(dest.Key);
                     }
-                }
             }
 
             SvgHelper.Dictionary = SvgHelper.Dictionary.Union(destinations).ToDictionary(d => d.Key, d => d.Value);
 
-            //int s = 0, max = -1;
 
-            //foreach (var node in SvgHelper.Dictionary.Values)
-            //{
-            //    s += node.Adjency.Count;
-            //    max = Math.Max(max, node.Adjency.Count);
-            //}
+            var s = SvgHelper.Dictionary.Values.Sum(x => x.Adjency.Count);
+            var m = SvgHelper.Dictionary.Values.Max(x => x.Adjency.Count);
 
-            var (distD, pD) = TimeHelper.MeasureTimeAlgorithm(() => Dijkstra.Calculate(), "Dijkstra");
-            var (dist, p) = TimeHelper.MeasureTimeAlgorithm(() => Levit.Calculate(), "Levit");
+            //pick random start point
+            var rnd = new Random();
+            ulong startId = SvgHelper.Dictionary.Keys.ElementAt(rnd.Next(SvgHelper.Dictionary.Count));
 
-            var differences = dist.Values.Zip(distD.Values, (d, l) => Math.Abs(d - l)).ToList();
+            var (distD, pD) = TimeHelper.MeasureTimeAlgorithm(() => Dijkstra.Calculate(startId), "Dijkstra");
+            var (distL, pL) = TimeHelper.MeasureTimeAlgorithm(() => Levit.Calculate(startId), "Levit");
 
-            foreach (var pred in pD)
+            // compare Dijkstra and Levit
+            var differences = distL.Values.Zip(distD.Values, (d, l) => Math.Abs(d - l)).ToList();
+            Console.WriteLine("Compare results for Dijkstra and Levit algorithms.");
+            Console.WriteLine($"Difference between distances:\t sum - {differences.Sum()}\t max - {differences.Max()}\t avg - {differences.Average()}");
+            Console.WriteLine($"Ancestors lists are {(pD.OrderBy(x => x.Key).SequenceEqual(pL.OrderBy(x => x.Key)) ? "equal" : "not equal")}\n");
+
+            var heuristicsFunctions = new List<Func<GeoPoint, GeoPoint, double>>
             {
-                if (pred.Value != p[pred.Key])
+                HeuristicFunctions.ChebyshevDistance,
+                HeuristicFunctions.EuclideanDistance,
+                HeuristicFunctions.ManhattanDistance,
+                HeuristicFunctions.DummyDistance
+            };
+
+            var heuristicsDifferences = heuristicsFunctions.ToDictionary(k => k, v => new List<double>());
+            foreach (var goalId in destinations.Keys)
+            {
+                var pathD = RestorePath(pD, startId, goalId).ToList();
+                foreach (var function in heuristicsFunctions)
                 {
-                    Console.WriteLine("Bad");
+                    var (distA, pa) = Astar.Calculate(goalId: goalId, heuristic: function, startId: startId);//TimeHelper.MeasureTimeAlgorithm(() => Astar.Calculate(heuristic: function, goalId: goalId, startId: startId),$"A* with {function.Method.Name} heuristics"); //
+                    heuristicsDifferences[function].Add(Math.Abs(distD[goalId] - distA[goalId]));
+                    var pathA = RestorePath(pa, startId, goalId);
+                    //Console.WriteLine(pathA.SequenceEqual(pathD));
                 }
             }
 
-            Console.WriteLine($"sum - {differences.Sum()}\t max - {differences.Max()}\t avg - {differences.Average()}");
+            foreach (var difference in heuristicsDifferences)
+                Console.WriteLine($"For {difference.Key.Method.Name} heuristic difference between distances:\n" +
+                                  $"sum - {difference.Value.Sum()}\t max - {difference.Value.Max()}\t avg - {difference.Value.Average()}");
+        }
+
+        private static IEnumerable<ulong> RestorePath(IReadOnlyDictionary<ulong, ulong> ancestors, ulong startId, ulong goalId)
+        {
+            // check if path exist to goalId
+            if (!ancestors.ContainsKey(goalId)) return new Stack<ulong>();
+
+            var s = new Stack<ulong>();
+            s.Push(goalId);
+            do
+            {
+                s.Push(ancestors[s.Peek()]);
+            } while (s.Peek() != startId);
+
+            return s;
         }
     }
 }
