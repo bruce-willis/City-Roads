@@ -60,14 +60,19 @@ namespace CityMap.Helpers
             }
         }
 
-        public static void WriteShortestPathes(string outputDirectory, ulong startId, IEnumerable<ulong> goals, IReadOnlyDictionary<ulong, ulong> ancestors)
+        public static void WriteShortestPathes(string outputDirectory, ulong startId, IEnumerable<ulong> goals, IReadOnlyDictionary<ulong, double> distances, IReadOnlyDictionary<ulong, ulong> ancestors)
         {
             using (var pathWriter = new StreamWriter(Path.Combine(outputDirectory, "shrotest_pathes.csv")))
             {
-                pathWriter.WriteLine("Start id, Goal id, Nodes id in shortest path");
+                pathWriter.WriteLine("Start id, Goal id, Distance, Estimated time by car, Nodes id in shortest path");
                 foreach (var goalId in goals)
                 {
-                    pathWriter.WriteLine($"{startId}, {goalId}, [{string.Join("->", DistanceHelper.RestorePath(startId, goalId, ancestors))}]");
+                    double time = distances[goalId] / 40;
+                    int hours = (int) time;
+                    double m =  (time - hours) * 60;
+                    int minutes = (int) m;
+                    int seconds = (int) Math.Round((m - minutes) * 60);
+                    pathWriter.WriteLine($"{startId}, {goalId}, {distances[goalId]}, {new TimeSpan(hours, minutes, seconds).ToString()}, [{string.Join("->", DistanceHelper.RestorePath(startId, goalId, ancestors))}]");
                 }
             }
         }

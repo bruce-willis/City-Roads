@@ -7,7 +7,6 @@ using System.Linq;
 using System.Threading;
 using CityMap.Types;
 using CityMap.Types.OSM;
-using CSharpx;
 
 namespace CityMap.Helpers
 {
@@ -85,14 +84,19 @@ namespace CityMap.Helpers
             File.WriteAllLines(Path.Combine(outputDirectory, "pathes.svg"), lines);
             using (var output = new StreamWriter(Path.Combine(outputDirectory, "pathes.svg"), true))
             {
-                foreach (var goalId in goals)
+                string[] coordinates;
+                foreach (var goalId in goals.Skip(1))
                 {
                     output.WriteLine($"<polyline points=\"{string.Join(", ", DistanceHelper.RestorePath(startId, goalId, ancestors).Select(x => GeoHelper.ConvertToGeo(Dictionary[x])))}\" " +
                                  "stroke=\"darkcyan\" fill=\"transparent\" stroke-width=\"2\"/>");
-                    var c = GeoHelper.ConvertToGeo(Dictionary[goalId]).Split();
-                    output.WriteLine($"<circle cx=\"{c.First()}\" cy=\"{c.Last()}\" r=\"3\" fill=\"navy(16)\" />");
+                    coordinates = GeoHelper.ConvertToGeo(Dictionary[goalId]).Split();
+                    output.WriteLine($"<circle cx=\"{coordinates.First()}\" cy=\"{coordinates.Last()}\" r=\"3\" fill=\"navy(16)\" />");
                 }
-                var coordinates = GeoHelper.ConvertToGeo(Dictionary[startId]).Split();
+                output.WriteLine($"<polyline points=\"{string.Join(", ", DistanceHelper.RestorePath(startId, goals.First(), ancestors).Select(x => GeoHelper.ConvertToGeo(Dictionary[x])))}\" " +
+                                 "stroke=\"cornflowerblue\" fill=\"transparent\" stroke-width=\"2.5\"/>");
+                coordinates = GeoHelper.ConvertToGeo(Dictionary[goals.First()]).Split();
+                output.WriteLine($"<circle cx=\"{coordinates.First()}\" cy=\"{coordinates.Last()}\" r=\"3.5\" fill=\"mediumblue\" />");
+                coordinates = GeoHelper.ConvertToGeo(Dictionary[startId]).Split();
                 output.WriteLine($"<circle cx=\"{coordinates.First()}\" cy=\"{coordinates.Last()}\" r=\"4\" fill=\"limegreen\" />");
                 output.WriteLine("</svg>");
             }
