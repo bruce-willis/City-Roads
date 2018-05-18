@@ -54,6 +54,7 @@ namespace CityMap.Helpers
             Console.WriteLine($"Difference between distances:\t sum - {differences.Sum()}\t max - {differences.Max()}\t avg - {differences.Average()}");
             Console.WriteLine($"Ancestors lists are {(pD.OrderBy(x => x.Key).SequenceEqual(pL.OrderBy(x => x.Key)) ? "equal" : "not equal")}");
             TimeHelper.MeasureTime(() => CsvHelper.WriteShortestPathes(outputDirectory, startId, destinations.Keys, pD), "writing shortest pathes to csv");
+            TimeHelper.MeasureTime(() => SvgHelper.DisplayShortestPathes(outputDirectory, startId, destinations.Keys, pD), "displaying shortest pathes to svg");
 
             var heuristicsFunctions =
                 new Dictionary<Func<GeoPoint, GeoPoint, double>, (List<double> differences, List<long> timings)>

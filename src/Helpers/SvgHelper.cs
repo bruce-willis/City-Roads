@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using CityMap.Types;
 using CityMap.Types.OSM;
+using CSharpx;
 
 namespace CityMap.Helpers
 {
@@ -74,6 +75,26 @@ namespace CityMap.Helpers
 
                 Dictionary = Dictionary.Where(n => n.Value.Used).ToDictionary(n => n.Key, n => n.Value);
                 //Console.WriteLine($"There are {edges} of {(ulong)_dictionary.Count * (ulong)_dictionary.Count} edges. It's {edges * 100.0 / _dictionary.Count / _dictionary.Count}% of possible");
+            }
+        }
+
+        public static void DisplayShortestPathes(string outputDirectory, ulong startId, IEnumerable<ulong> goals,
+            IReadOnlyDictionary<ulong, ulong> ancestors)
+        {
+            var lines = File.ReadAllLines(Path.Combine(outputDirectory, "map.svg")).SkipLast(1).ToList();
+            File.WriteAllLines(Path.Combine(outputDirectory, "pathes.svg"), lines);
+            using (var output = new StreamWriter(Path.Combine(outputDirectory, "pathes.svg"), true))
+            {
+                foreach (var goalId in goals)
+                {
+                    output.WriteLine($"<polyline points=\"{string.Join(", ", DistanceHelper.RestorePath(startId, goalId, ancestors).Select(x => GeoHelper.ConvertToGeo(Dictionary[x])))}\" " +
+                                 "stroke=\"darkcyan\" fill=\"transparent\" stroke-width=\"2\"/>");
+                    var c = GeoHelper.ConvertToGeo(Dictionary[goalId]).Split();
+                    output.WriteLine($"<circle cx=\"{c.First()}\" cy=\"{c.Last()}\" r=\"3\" fill=\"navy(16)\" />");
+                }
+                var coordinates = GeoHelper.ConvertToGeo(Dictionary[startId]).Split();
+                output.WriteLine($"<circle cx=\"{coordinates.First()}\" cy=\"{coordinates.Last()}\" r=\"4\" fill=\"limegreen\" />");
+                output.WriteLine("</svg>");
             }
         }
     }
