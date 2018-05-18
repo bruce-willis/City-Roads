@@ -13,7 +13,7 @@ namespace CityMap.Helpers
     public static class DistanceHelper
     {
         public static Dictionary<ulong, GeoPoint> Destinations;
-        private const string Amenity = "college";
+        private const string Amenity = "school";
         private const double SmallDistance = 0.3;
 
         public static void AddNodes(City city)

@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Xml.Serialization;
+using CityMap.Algorithms.Travelling_salesman;
 using CityMap.Helpers;
 using CityMap.Types;
 using CityMap.Types.OSM;
@@ -47,7 +48,12 @@ namespace CityMap
 
             TimeHelper.MeasureTime(() => SvgHelper.GenerateSvg(city, options), "generationg svg file");
 
-            DistanceHelper.CompareAlgorithms(city, options.OutputDirectory);
+            DistanceHelper.AddNodes(city);
+            //DistanceHelper.CompareAlgorithms(options.OutputDirectory);
+
+            TimeHelper.MeasureTime(() => NearestNeighbour.Calculate(city, options.OutputDirectory), "solving travelling salesman problem using nearest neighbour");
+            TimeHelper.MeasureTime(() => NearestNeighbour.CalculateWithRandom(city, options.OutputDirectory), "solving travelling salesman problem using nearest neighbour and random");
+
 
             if (options.GenerateNodesList)
                 TimeHelper.MeasureTime(() => CsvHelper.WriteNodesInfo(options.OutputDirectory), "creating csv with nodes' information");

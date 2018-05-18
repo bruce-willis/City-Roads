@@ -102,11 +102,11 @@ namespace CityMap.Helpers
             }
         }
 
-        public static void DisplaySalesmanPath(string outputDirectory, Queue<(ulong id, IEnumerable<ulong> path)> order)
+        public static void DisplaySalesmanPath(string outputDirectory, string filename,  Queue<(ulong id, IEnumerable<ulong> path)> order)
         {
             var lines = File.ReadAllLines(Path.Combine(outputDirectory, "map.svg")).SkipLast(1).ToList();
-            File.WriteAllLines(Path.Combine(outputDirectory, "salesman.svg"), lines);
-            using (var output = new StreamWriter(Path.Combine(outputDirectory, "salesman.svg"), true))
+            File.WriteAllLines(Path.Combine(outputDirectory, $"salesman_{filename}.svg"), lines);
+            using (var output = new StreamWriter(Path.Combine(outputDirectory, $"salesman_{filename}.svg"), true))
             {
                 var coordinates = GeoHelper.ConvertToGeo(Dictionary[order.First().id]).Split();
                 output.WriteLine($"<circle cx=\"{coordinates.First()}\" cy=\"{coordinates.Last()}\" r=\"7\" fill=\"cornflowerblue\" />");
@@ -116,7 +116,7 @@ namespace CityMap.Helpers
                     output.WriteLine($"<polyline points=\"{string.Join(", ", currentPath.path.Select(x => GeoHelper.ConvertToGeo(Dictionary[x])))}\" " +
                                       "stroke=\"darkcyan\" fill=\"transparent\" stroke-width=\"2\"/>");
                     coordinates = GeoHelper.ConvertToGeo(Dictionary[currentPath.id]).Split();
-                    output.WriteLine($"<g> <circle cx=\"{coordinates.First()}\" cy=\"{coordinates.Last()}\" r=\"7\" stroke=\"darkblue\" stroke-width=\"1\" fill=\"none\"/> <text x=\"{coordinates.First()}\" y=\"{coordinates.Last()}\" text-anchor=\"middle\" stroke=\"black\" stroke-width=\"1px\" dy=\".3em\">{i++}</text>\r\n  </g>");
+                    output.WriteLine($"<circle cx=\"{coordinates.First()}\" cy=\"{coordinates.Last()}\" r=\"7\" stroke=\"darkblue\" stroke-width=\"1\" fill=\"none\"/> <text x=\"{coordinates.First()}\" y=\"{coordinates.Last()}\" text-anchor=\"middle\" stroke=\"black\" stroke-width=\"1px\" dy=\".3em\">{i++}</text>");
                 }
 
                 output.WriteLine("</svg>");
