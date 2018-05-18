@@ -76,5 +76,30 @@ namespace CityMap.Helpers
                 //Console.WriteLine($"There are {edges} of {(ulong)_dictionary.Count * (ulong)_dictionary.Count} edges. It's {edges * 100.0 / _dictionary.Count / _dictionary.Count}% of possible");
             }
         }
+
+        public static void DisplayShortestPathes(string outputDirectory, ulong startId, IEnumerable<ulong> goals,
+            IReadOnlyDictionary<ulong, ulong> ancestors)
+        {
+            var lines = File.ReadAllLines(Path.Combine(outputDirectory, "map.svg")).SkipLast(1).ToList();
+            File.WriteAllLines(Path.Combine(outputDirectory, "pathes.svg"), lines);
+            using (var output = new StreamWriter(Path.Combine(outputDirectory, "pathes.svg"), true))
+            {
+                string[] coordinates;
+                foreach (var goalId in goals.Skip(1))
+                {
+                    output.WriteLine($"<polyline points=\"{string.Join(", ", DistanceHelper.RestorePath(startId, goalId, ancestors).Select(x => GeoHelper.ConvertToGeo(Dictionary[x])))}\" " +
+                                 "stroke=\"darkcyan\" fill=\"transparent\" stroke-width=\"2\"/>");
+                    coordinates = GeoHelper.ConvertToGeo(Dictionary[goalId]).Split();
+                    output.WriteLine($"<circle cx=\"{coordinates.First()}\" cy=\"{coordinates.Last()}\" r=\"3\" fill=\"navy(16)\" />");
+                }
+                output.WriteLine($"<polyline points=\"{string.Join(", ", DistanceHelper.RestorePath(startId, goals.First(), ancestors).Select(x => GeoHelper.ConvertToGeo(Dictionary[x])))}\" " +
+                                 "stroke=\"cornflowerblue\" fill=\"transparent\" stroke-width=\"2.5\"/>");
+                coordinates = GeoHelper.ConvertToGeo(Dictionary[goals.First()]).Split();
+                output.WriteLine($"<circle cx=\"{coordinates.First()}\" cy=\"{coordinates.Last()}\" r=\"3.5\" fill=\"mediumblue\" />");
+                coordinates = GeoHelper.ConvertToGeo(Dictionary[startId]).Split();
+                output.WriteLine($"<circle cx=\"{coordinates.First()}\" cy=\"{coordinates.Last()}\" r=\"4\" fill=\"limegreen\" />");
+                output.WriteLine("</svg>");
+            }
+        }
     }
 }

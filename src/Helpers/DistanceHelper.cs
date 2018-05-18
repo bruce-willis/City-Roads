@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using CityMap.Algorithms;
@@ -13,7 +14,7 @@ namespace CityMap.Helpers
         private const string Amenity = "school";
         private const double SmallDistance = 0.3;
 
-        public static void CompareAlgorithms(City city)
+        public static void CompareAlgorithms(City city, string outputDirectory)
         {
             var destinations = city.Nodes.Where(n => n.Tags.Exists(t => t.Key == "amenity" && t.Value == Amenity))
                 .ToDictionary(k => k.Id, v => new GeoPoint(v.Longitude, v.Latitude));
@@ -49,37 +50,49 @@ namespace CityMap.Helpers
 
             // compare Dijkstra and Levit
             var differences = distL.Values.Zip(distD.Values, (d, l) => Math.Abs(d - l)).ToList();
-            Console.WriteLine("Compare results for Dijkstra and Levit algorithms.");
+            Console.WriteLine("Compare results for Dijkstra and Levit algorithms:");
             Console.WriteLine($"Difference between distances:\t sum - {differences.Sum()}\t max - {differences.Max()}\t avg - {differences.Average()}");
-            Console.WriteLine($"Ancestors lists are {(pD.OrderBy(x => x.Key).SequenceEqual(pL.OrderBy(x => x.Key)) ? "equal" : "not equal")}\n");
+            Console.WriteLine($"Ancestors lists are {(pD.OrderBy(x => x.Key).SequenceEqual(pL.OrderBy(x => x.Key)) ? "equal" : "not equal")}");
 
-            var heuristicsFunctions = new List<Func<GeoPoint, GeoPoint, double>>
-            {
-                HeuristicFunctions.ChebyshevDistance,
-                HeuristicFunctions.EuclideanDistance,
-                HeuristicFunctions.ManhattanDistance,
-                HeuristicFunctions.DummyDistance
-            };
+            TimeHelper.MeasureTime(() => CsvHelper.WriteShortestPathes(outputDirectory, startId, destinations.Keys.OrderBy(x => distD[x]), distD, pD), "writing shortest pathes to csv");
+            TimeHelper.MeasureTime(() => SvgHelper.DisplayShortestPathes(outputDirectory, startId, destinations.Keys.OrderBy(x => distD[x]), pD), "writing shortest pathes to svg");
 
-            var heuristicsDifferences = heuristicsFunctions.ToDictionary(k => k, v => new List<double>());
-            foreach (var goalId in destinations.Keys)
-            {
-                var pathD = RestorePath(pD, startId, goalId).ToList();
-                foreach (var function in heuristicsFunctions)
+            var heuristicsFunctions =
+                new Dictionary<Func<GeoPoint, GeoPoint, double>, (List<double> differences, List<long> timings)>
                 {
-                    var (distA, pa) = Astar.Calculate(goalId: goalId, heuristic: function, startId: startId);//TimeHelper.MeasureTimeAlgorithm(() => Astar.Calculate(heuristic: function, goalId: goalId, startId: startId),$"A* with {function.Method.Name} heuristics"); //
-                    heuristicsDifferences[function].Add(Math.Abs(distD[goalId] - distA[goalId]));
-                    var pathA = RestorePath(pa, startId, goalId);
-                    //Console.WriteLine(pathA.SequenceEqual(pathD));
-                }
-            }
+                    [HeuristicFunctions.ChebyshevDistance] = ValueTuple.Create(new List<double>(), new List<long>()),
+                    [HeuristicFunctions.DummyDistance] = ValueTuple.Create(new List<double>(), new List<long>()),
+                    [HeuristicFunctions.EuclideanDistance] = ValueTuple.Create(new List<double>(), new List<long>()),
+                    [HeuristicFunctions.ManhattanDistance] = ValueTuple.Create(new List<double>(), new List<long>())
+                };
 
-            foreach (var difference in heuristicsDifferences)
-                Console.WriteLine($"For {difference.Key.Method.Name} heuristic difference between distances:\n" +
-                                  $"sum - {difference.Value.Sum()}\t max - {difference.Value.Max()}\t avg - {difference.Value.Average()}");
+            TimeHelper.MeasureTime(() =>
+            {
+                foreach (var goalId in destinations.Keys)
+                {
+                    var pathD = RestorePath(startId, goalId, pD).ToList();
+                    foreach (var function in heuristicsFunctions)
+                    {
+                        var timer = Stopwatch.StartNew();
+                        var (distA, pa) = Astar.Calculate(startId, goalId, function.Key);
+                        function.Value.timings.Add(timer.Elapsed.Ticks);
+                        function.Value.differences.Add(Math.Abs(distD[goalId] - distA[goalId]));
+                        var pathA = RestorePath(startId, goalId, pa);
+                        //Console.WriteLine(pathA.SequenceEqual(pathD));
+                    }
+                }
+            }, $"A* with {heuristicsFunctions.Count} different heuristics");
+
+            foreach (var function in heuristicsFunctions)
+            {
+                Console.WriteLine($"{function.Key.Method.Name} - difference between distances with Dijkstra: " +
+                                  $"sum - {function.Value.differences.Sum()} max - {function.Value.differences.Max()} avg - {function.Value.differences.Average()}");
+                Console.WriteLine($"timing information:\tsum - {new TimeSpan(function.Value.timings.Sum())}\t max - {new TimeSpan(function.Value.timings.Max())}\t avg - {new TimeSpan(Convert.ToInt64(function.Value.timings.Average()))}");
+            }
         }
 
-        private static IEnumerable<ulong> RestorePath(IReadOnlyDictionary<ulong, ulong> ancestors, ulong startId, ulong goalId)
+        public static IEnumerable<ulong> RestorePath(ulong startId, ulong goalId,
+            IReadOnlyDictionary<ulong, ulong> ancestors)
         {
             // check if path exist to goalId
             if (!ancestors.ContainsKey(goalId)) return new Stack<ulong>();
