@@ -4,7 +4,7 @@ using System.Linq;
 using CityMap.Helpers;
 using CityMap.Types;
 
-namespace CityMap.Algorithms
+namespace CityMap.Algorithms.Shortest_Path
 {
     public static class Astar
     {

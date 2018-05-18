@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using CityMap.Algorithms;
+using CityMap.Algorithms.Shortest_Path;
 using CityMap.Types;
 using CityMap.Types.OSM;
 
@@ -11,36 +12,46 @@ namespace CityMap.Helpers
 {
     public static class DistanceHelper
     {
-        private const string Amenity = "school";
+        public static Dictionary<ulong, GeoPoint> Destinations;
+        private const string Amenity = "college";
         private const double SmallDistance = 0.3;
 
-        public static void CompareAlgorithms(City city, string outputDirectory)
+        public static void AddNodes(City city)
         {
-            var destinations = city.Nodes.Where(n => n.Tags.Exists(t => t.Key == "amenity" && t.Value == Amenity))
+            Destinations = city.Nodes.Where(n => n.Tags.Exists(t => t.Key == "amenity" && t.Value == Amenity))
                 .ToDictionary(k => k.Id, v => new GeoPoint(v.Longitude, v.Latitude));
 
-            var size = destinations.Count;
+            var size = Destinations.Count;
 
             foreach (var node in SvgHelper.Dictionary)
             {
-                foreach (var dest in destinations)
-                    if (dest.Value.DistanceBetweenPoints(new GeoPoint(node.Value.Longitude, node.Value.Latitude)) < SmallDistance)
+                foreach (var dest in Destinations)
+                    if (dest.Value.DistanceBetweenPoints(new GeoPoint(node.Value.Longitude, node.Value.Latitude)) <
+                        SmallDistance)
                     {
-                        var realDistance = dest.Value.DistanceBetweenPoints(new GeoPoint(node.Value.Longitude, node.Value.Latitude));
-                        var chebyshev = HeuristicFunctions.ChebyshevDistance(dest.Value, new GeoPoint(node.Value.Longitude, node.Value.Latitude));
-                        var euclidean = HeuristicFunctions.EuclideanDistance(dest.Value, new GeoPoint(node.Value.Longitude, node.Value.Latitude));
-                        var manhattan = HeuristicFunctions.ManhattanDistance(dest.Value, new GeoPoint(node.Value.Longitude, node.Value.Latitude));
+                        var realDistance =
+                            dest.Value.DistanceBetweenPoints(new GeoPoint(node.Value.Longitude, node.Value.Latitude));
+                        var chebyshev = HeuristicFunctions.ChebyshevDistance(dest.Value,
+                            new GeoPoint(node.Value.Longitude, node.Value.Latitude));
+                        var euclidean = HeuristicFunctions.EuclideanDistance(dest.Value,
+                            new GeoPoint(node.Value.Longitude, node.Value.Latitude));
+                        var manhattan = HeuristicFunctions.ManhattanDistance(dest.Value,
+                            new GeoPoint(node.Value.Longitude, node.Value.Latitude));
                         dest.Value.Adjency.Add(node.Key);
                         SvgHelper.Dictionary[node.Key].Adjency.Add(dest.Key);
                     }
             }
 
-            SvgHelper.Dictionary = SvgHelper.Dictionary.Union(destinations).ToDictionary(d => d.Key, d => d.Value);
+            SvgHelper.Dictionary = SvgHelper.Dictionary.Union(Destinations).ToDictionary(d => d.Key, d => d.Value);
 
 
-            var s = SvgHelper.Dictionary.Values.Sum(x => x.Adjency.Count);
-            var m = SvgHelper.Dictionary.Values.Max(x => x.Adjency.Count);
+            //var s = SvgHelper.Dictionary.Values.Sum(x => x.Adjency.Count);
+            //var m = SvgHelper.Dictionary.Values.Max(x => x.Adjency.Count);
+            //var a = SvgHelper.Dictionary.Values.Average(x => x.Adjency.Count);
+        }
 
+        public static void CompareAlgorithms(string outputDirectory)
+        {
             //pick random start point
             var rnd = new Random();
             ulong startId = SvgHelper.Dictionary.Keys.ElementAt(rnd.Next(SvgHelper.Dictionary.Count));
@@ -54,8 +65,8 @@ namespace CityMap.Helpers
             Console.WriteLine($"Difference between distances:\t sum - {differences.Sum()}\t max - {differences.Max()}\t avg - {differences.Average()}");
             Console.WriteLine($"Ancestors lists are {(pD.OrderBy(x => x.Key).SequenceEqual(pL.OrderBy(x => x.Key)) ? "equal" : "not equal")}");
 
-            TimeHelper.MeasureTime(() => CsvHelper.WriteShortestPathes(outputDirectory, startId, destinations.Keys.OrderBy(x => distD[x]), distD, pD), "writing shortest pathes to csv");
-            TimeHelper.MeasureTime(() => SvgHelper.DisplayShortestPathes(outputDirectory, startId, destinations.Keys.OrderBy(x => distD[x]), pD), "writing shortest pathes to svg");
+            TimeHelper.MeasureTime(() => CsvHelper.WriteShortestPathes(outputDirectory, startId, Destinations.Keys.OrderBy(x => distD[x]), distD, pD), "writing shortest pathes to csv");
+            TimeHelper.MeasureTime(() => SvgHelper.DisplayShortestPathes(outputDirectory, startId, Destinations.Keys.OrderBy(x => distD[x]), pD), "writing shortest pathes to svg");
 
             var heuristicsFunctions =
                 new Dictionary<Func<GeoPoint, GeoPoint, double>, (List<double> differences, List<long> timings)>
@@ -68,7 +79,7 @@ namespace CityMap.Helpers
 
             TimeHelper.MeasureTime(() =>
             {
-                foreach (var goalId in destinations.Keys)
+                foreach (var goalId in Destinations.Keys)
                 {
                     var pathD = RestorePath(startId, goalId, pD).ToList();
                     foreach (var function in heuristicsFunctions)

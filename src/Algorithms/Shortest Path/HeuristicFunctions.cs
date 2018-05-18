@@ -1,7 +1,7 @@
 ﻿using System;
 using CityMap.Types;
 
-namespace CityMap.Algorithms
+namespace CityMap.Algorithms.Shortest_Path
 {
     public static class HeuristicFunctions
     {
