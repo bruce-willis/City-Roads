@@ -2,7 +2,7 @@
 using System.Linq;
 using CityMap.Helpers;
 
-namespace CityMap.Algorithms
+namespace CityMap.Algorithms.Shortest_Path
 {
     /// <see cref="http://e-maxx.ru/algo/dijkstra_sparse"/>
     public static class Dijkstra
