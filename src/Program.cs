@@ -51,6 +51,7 @@ namespace CityMap
             DistanceHelper.AddNodes(city);
             //DistanceHelper.CompareAlgorithms(options.OutputDirectory);
 
+            Directory.CreateDirectory(Path.Combine(options.OutputDirectory, "Salesman"));
             TimeHelper.MeasureTime(() => Console.Write(CommonSalesman.Distances.Count), "calculating distances and pathes between destinations");
             TimeHelper.MeasureTime(() => NearestNeighbour.Calculate(options.OutputDirectory), "solving travelling salesman problem using nearest neighbour");
             TimeHelper.MeasureTime(() => NearestNeighbour.Calculate(options.OutputDirectory, withRandom: true), "solving travelling salesman problem using nearest neighbour and random");

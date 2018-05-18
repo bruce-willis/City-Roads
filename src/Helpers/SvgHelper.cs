@@ -106,8 +106,8 @@ namespace CityMap.Helpers
         public static void DisplaySalesmanPath(string outputDirectory, string filename, IReadOnlyList<ulong> order)
         {
             var lines = File.ReadAllLines(Path.Combine(outputDirectory, "map.svg")).SkipLast(1).ToList();
-            File.WriteAllLines(Path.Combine(outputDirectory, $"salesman_{filename}.svg"), lines);
-            using (var output = new StreamWriter(Path.Combine(outputDirectory, $"salesman_{filename}.svg"), true))
+            File.WriteAllLines(Path.Combine(outputDirectory, "Salesman", $"{filename}.svg"), lines);
+            using (var output = new StreamWriter(Path.Combine(outputDirectory, "Salesman", $"{filename}.svg"), true))
             {
                 var coordinates = GeoHelper.ConvertToGeo(Dictionary[order.First()]).Split();
                 output.WriteLine($"<circle cx=\"{coordinates.First()}\" cy=\"{coordinates.Last()}\" r=\"7\" fill=\"cornflowerblue\" />");

@@ -50,6 +50,7 @@ namespace CityMap.Algorithms.Travelling_salesman
             Console.WriteLine($"Total length of the path is {totalDistance}");
 
             SvgHelper.DisplaySalesmanPath(outputDirectory, withRandom ? "nearest_with_random" : "nearest", order);
+            CsvHelper.WriteSalesmanPath(outputDirectory, withRandom ? "nearest_with_random" : "nearest", order);
             return totalDistance;
         }
     }

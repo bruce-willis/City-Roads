@@ -56,6 +56,7 @@ namespace CityMap.Algorithms.Travelling_salesman
             Console.WriteLine($"Total length of the path is {minimalDistance}");
             minimalOrder.Insert(0, CommonSalesman.StartId);
             SvgHelper.DisplaySalesmanPath(outputDirectory, "simulated_annealing", minimalOrder);
+            CsvHelper.WriteSalesmanPath(outputDirectory, "simulated_annealing", minimalOrder);
             return currentDistance;
         }
 
