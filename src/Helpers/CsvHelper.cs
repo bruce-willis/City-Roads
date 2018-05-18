@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text;
 using CityMap.Types;
 
@@ -36,7 +37,7 @@ namespace CityMap.Helpers
 
         private static string AdjustMatrixRow(KeyValuePair<ulong, GeoPoint> point, IEnumerable<ulong> keys)
         {
-            var sb = new StringBuilder();
+            var sb = new StringBuilder(keys.Count());
             foreach (var key in keys) sb.Append(point.Value.Adjency.Contains(key) ? ", 1" : ", 0");
             return sb.ToString();
         }
@@ -55,6 +56,18 @@ namespace CityMap.Helpers
                     if (++count % 1000 == 0)
                         Console.WriteLine(
                             $"Done {count} nodes of {SvgHelper.Dictionary.Count}. It's {count * 100.0 / SvgHelper.Dictionary.Count}%. Elapsed time: {stopWatch.Elapsed}");
+                }
+            }
+        }
+
+        public static void WriteShortestPathes(string outputDirectory, ulong startId, IEnumerable<ulong> goals, IReadOnlyDictionary<ulong, ulong> ancestors)
+        {
+            using (var pathWriter = new StreamWriter(Path.Combine(outputDirectory, "shrotest_pathes.csv")))
+            {
+                pathWriter.WriteLine("Start id, Goal id, Nodes id in shortest path");
+                foreach (var goalId in goals)
+                {
+                    pathWriter.WriteLine($"{startId}, {goalId}, [{string.Join("->", DistanceHelper.RestorePath(startId, goalId, ancestors))}]");
                 }
             }
         }

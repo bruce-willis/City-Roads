@@ -47,7 +47,7 @@ namespace CityMap
 
             TimeHelper.MeasureTime(() => SvgHelper.GenerateSvg(city, options), "generationg svg file");
 
-            DistanceHelper.CompareAlgorithms(city);
+            DistanceHelper.CompareAlgorithms(city, options.OutputDirectory);
 
             if (options.GenerateNodesList)
                 TimeHelper.MeasureTime(() => CsvHelper.WriteNodesInfo(options.OutputDirectory), "creating csv with nodes' information");
