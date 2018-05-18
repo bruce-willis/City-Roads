@@ -10,10 +10,10 @@ namespace CityMap.Types
         [Option('o', "output", Default = "Output", HelpText = "Output directory name")]
         public string OutputDirectory { get; set; }
 
-        [Option('n', "write-nodes", Default = false, HelpText = "Create csv file with information about nodes")]
+        [Option('n', "write-nodes", Default = true, HelpText = "Create csv file with information about nodes")]
         public bool GenerateNodesList { get; set; }
 
-        [Option('l', "write-list", Default = false, HelpText = "Create csv file with adjacency list")]
+        [Option('l', "write-list", Default = true, HelpText = "Create csv file with adjacency list")]
         public bool GenerateAdjacencyList { get; set; }
 
         [Option('m', "write-matrix", Default = false,
@@ -21,5 +21,11 @@ namespace CityMap.Types
                 "Create csv file with adjacency matrix. Be very careful! It's very long process (~30 min for 80 Mb of input file) " +
                 "and the output file will be very-very-very big (~41 Gb in my case)")]
         public bool GenerateAdjacencyMatrix { get; set; }
+
+        [Option('p', "short-pathes", Default = true, HelpText = "Find the shortest pathes using Dijkstra, Levit and A* algorithms")]
+        public bool FindShortestPathes { get; set; }
+
+        [Option('s', "salesman", Default = true, HelpText = "Solve travelling salesman problem using nearest neighbour and simulated annealing algorithms")]
+        public bool SolveSalesmanProblem { get; set; }
     }
 }
