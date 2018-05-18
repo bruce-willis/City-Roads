@@ -51,9 +51,20 @@ namespace CityMap
             DistanceHelper.AddNodes(city);
             //DistanceHelper.CompareAlgorithms(options.OutputDirectory);
 
-            TimeHelper.MeasureTime(() => NearestNeighbour.Calculate(city, options.OutputDirectory), "solving travelling salesman problem using nearest neighbour");
-            TimeHelper.MeasureTime(() => NearestNeighbour.CalculateWithRandom(city, options.OutputDirectory), "solving travelling salesman problem using nearest neighbour and random");
-
+            TimeHelper.MeasureTime(() => Console.Write(CommonSalesman.Distances.Count), "calculating distances and pathes between destinations");
+            TimeHelper.MeasureTime(() => NearestNeighbour.Calculate(options.OutputDirectory), "solving travelling salesman problem using nearest neighbour");
+            TimeHelper.MeasureTime(() => NearestNeighbour.Calculate(options.OutputDirectory, withRandom: true), "solving travelling salesman problem using nearest neighbour and random");
+            //int i = 0;
+            //double d1, d2;
+            //do
+            //{
+            //    d1 = NearestNeighbour.Calculate(city, options.OutputDirectory);
+            //    d2 = NearestNeighbour.CalculateWithRandom(city, options.OutputDirectory);
+            //    Console.WriteLine(i++);
+            //} while (d1 <= d2);
+            //Console.WriteLine(d1);
+            //Console.WriteLine(d2);
+            TimeHelper.MeasureTime(() => SimulatedAnnealing.Calculate(10, 0.00001, options.OutputDirectory), "solving tsp using simulated annealing");
 
             if (options.GenerateNodesList)
                 TimeHelper.MeasureTime(() => CsvHelper.WriteNodesInfo(options.OutputDirectory), "creating csv with nodes' information");
