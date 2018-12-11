@@ -60,6 +60,24 @@ namespace CityMap.Helpers
             var (distD, pD) = TimeHelper.MeasureTimeAlgorithm(() => Dijkstra.Calculate(startId), "Dijkstra");
             var (distL, pL) = TimeHelper.MeasureTimeAlgorithm(() => Levit.Calculate(startId), "Levit");
 
+            //var timeD = new List<long>();
+            //var timeL = new List<long>();
+            //for (int i = 0; i < 100; i++)
+            //{
+            //    ulong startId = SvgHelper.Dictionary.Keys.ElementAt(rnd.Next(SvgHelper.Dictionary.Count));
+            //    var tD = Stopwatch.StartNew();
+            //    var (distD, pD) = Dijkstra.Calculate(startId);// TimeHelper.MeasureTimeAlgorithm(() => Dijkstra.Calculate(startId), "Dijkstra");
+            //    timeD.Add(tD.ElapsedTicks);
+            //    var tL = Stopwatch.StartNew();
+            //    var (distL, pL) =
+            //        Levit.Calculate(
+            //            startId); //TimeHelper.MeasureTimeAlgorithm(() => Levit.Calculate(startId), "Levit");
+            //    timeL.Add(tL.ElapsedTicks);
+            //}
+
+            //Console.WriteLine($"timing information:\tsum - {new TimeSpan(timeD.Sum())}\t max - {new TimeSpan(timeD.Max())}\t avg - {new TimeSpan(Convert.ToInt64(timeD.Average()))}");
+            //Console.WriteLine($"timing information:\tsum - {new TimeSpan(timeL.Sum())}\t max - {new TimeSpan(timeL.Max())}\t avg - {new TimeSpan(Convert.ToInt64(timeL.Average()))}");
+
             // compare Dijkstra and Levit
             var differences = distL.Values.Zip(distD.Values, (d, l) => Math.Abs(d - l)).ToList();
             Console.WriteLine("Compare results for Dijkstra and Levit algorithms:");
